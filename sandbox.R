@@ -4,7 +4,7 @@ library(purrr)
 library(lubridate)
 
 # load data
-d <- readMat("raw-data/cesm_rcp85.mat")
+d <- readMat("data-raw/cesm_rcp85.mat")
 latlon <- readMat("raw-data/latlon.mat")
 
 # functions
@@ -36,7 +36,7 @@ a <- slice_time(d, start_time = "2005-01", end_time = "2005-01")
 
 
 listed_matrix_to_df <- function(x) {
-  
+
 }
 
 
