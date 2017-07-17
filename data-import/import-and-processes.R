@@ -1,7 +1,7 @@
 library(ncdf4)
 library(MASS)
 
-# replicating matlab script
+#  replicating matlab script
 
 ncdir <-'/Users/Face2sea/Documents/MATLAB/GlobalUrbanProj/'
 # urban screen-height temperature
