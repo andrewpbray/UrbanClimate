@@ -1,13 +1,3 @@
-library(tidyverse)
-library(R.matlab)
-library(purrr)
-library(lubridate)
-
-# load data
-d <- readMat("data-raw/cesm_rcp85.mat")
-latlon <- readMat("raw-data/latlon.mat")
-
-# functions
 slice_time <- function(x, start_time, end_time, ref_start = "2005-01", ref_end = "2100-12") {
   start_period <- as.period(ymd(paste0(start_time, "-01")) - ymd(paste0(ref_start, "-01")))
   start_ind <- round(day(start_period)/31) + 1
@@ -25,18 +15,3 @@ deseason_ts <- function(timeseries) {
   st <- rep(st, len/12)
   ds_Ts <- timeseries - st
 }
-
-
-a <- slice_time(d, start_time = "2005-01", end_time = "2005-01")
-
-
-
-
-
-
-
-listed_matrix_to_df <- function(x) {
-
-}
-
-
