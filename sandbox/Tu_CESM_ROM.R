@@ -57,11 +57,12 @@ for (i in 1:dim(Tu)[1]) {
       Tu1d=Tu[i,j,]; TH1d=TH[i,j,]; Q1d=Q[i,j,]; P1d=P[i,j,]; Q1d=Q[i,j,] 
       Tref1d=Tref[i,j,];Ld1d=Ld[i,j,];Sd1d=Sd[i,j,];LiqPrecip1d=LiqPrecip[i,j,]
       SolidPrecip1d=SolidPrecip[i,j,]; PCO21d=PCO2[i,j,]
-      cesm_data=cbind(Sd1d,Ld1d,Q1d,P1d,LiqPrecip1d,SolidPrecip1d,PCO21d,Tu1d)
-      mdl = lm('Tu1d~.',data=as.data.frame(cesm_data))
+      cesm_data=cbind(Sd1d,Ld1d,Q1d,P1d,LiqPrecip1d,SolidPrecip1d,PCO21d,Tref1d,Tu1d)
+      mdl <- lm('Tu1d~.',data=as.data.frame(cesm_data))
       #step <- stepAIC(mdl, direction = 'backward')
       mdls[[i,j]]=mdl
       R2Map[i,j]=summary(mdl)$r.squared
+      RMSEMap[i,j]=sqrt(mean(mdl$residuals^2, na.rm=T))
       print(count)
     }
   }
