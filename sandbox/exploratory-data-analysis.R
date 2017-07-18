@@ -1,5 +1,5 @@
 # load data
-load(url())
+load(url("https://www.dropbox.com/s/v0cal2s54mizlfo/urban.rda?dl=1"))
 
 # find urban gridcells
 is_urban <- (rowSums(!is.na(urban[, , "Tu"])) > 0)
