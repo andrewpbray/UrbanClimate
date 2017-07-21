@@ -90,75 +90,56 @@ for (i in 1:k) {
 }
 
 
-# make map of urban areas in North America
-library(ggmap)
+#====================#
+# RMSE map
+#====================#
+# This requires running part three of model-selection.R to
+# create map_m1_df and map_m2_df
 
-theme_map <- function(...) {
-  theme_minimal() +
-    theme(
-      text = element_text(family = "Ubuntu Regular", color = "#22211d"),
-      axis.line = element_blank(),
-      axis.text.x = element_blank(),
-      axis.text.y = element_blank(),
-      axis.ticks = element_blank(),
-      axis.title.x = element_blank(),
-      axis.title.y = element_blank(),
-      # panel.grid.minor = element_line(color = "#ebebe5", size = 0.2),
-      panel.grid.major = element_line(color = "#ebebe5", size = 0.2),
-      panel.grid.minor = element_blank(),
-      plot.background = element_rect(fill = "#f5f5f2", color = NA),
-      panel.background = element_rect(fill = "#f5f5f2", color = NA),
-      legend.background = element_rect(fill = "#f5f5f2", color = NA),
-      panel.border = element_blank(),
-      ...
-    )
-}
-
-north_am <- c(left = -128, bottom = 12, right = -65, top = 55)
-world <- c(left = -180, bottom = -90, right = 180, top = 90)
-map <- get_openstreetmap(world)
-p1 <- ggmap(map) +
-  theme_minimal()
-
-df <- data.frame(lat = c(35, 20), lon = c(-85, -100), val = c(5, 10))
-p1 + geom_tile(data = map_df, aes(x = lon, y = lat, fill = m1))
-
-is_urban <- (rowSums(!is.na(urban[, , "Tu"])) > 0)
-is_urban_mat <- matrix(is_urban, nrow = 288)
-
+library(ggplot2)
 map.world <- map_data(map = "world")
 
 map.world$long <- map.world$long - 180
 ggplot(map.world, aes(x = long + 180, y = lat)) +
   geom_polygon(aes(group = group), fill = "lightgrey") +
   theme_minimal() +
-  xlab("lon") #+
-  geom_tile(data = map_df, aes(x = lon, y = lat, fill = m1))
+  xlab("") +
+  ylab("") +
+  geom_tile(data = map_df_m1, aes(x = lon, y = lat, fill = RMSE, colour = RMSE), size = 1) +
+  scale_fill_distiller(palette = "Spectral",
+                       limits = c(0, 1.5),
+                       labels = c("0", ".5", "1", "1.5"),
+                       breaks = c(0, .5, 1, 1.5)) +
+  scale_color_distiller(palette = "Spectral",
+                        limits = c(0, 1.5),
+                        labels = c("0", ".5", "1", "1.5"),
+                        breaks = c(0, .5, 1, 1.5))
 
-ggplot(map_df, aes(x = lon, y = lat, fill = m1)) +
-  geom_tile() + theme_minimal()
+map.world$long <- map.world$long - 180
+ggplot(map.world, aes(x = long + 180, y = lat)) +
+  geom_polygon(aes(group = group), fill = "lightgrey") +
+  theme_minimal() +
+  xlab("") +
+  ylab("") +
+  geom_tile(data = map_df_m2, aes(x = lon, y = lat, fill = RMSE, colour = RMSE), size = 1) +
+  scale_fill_distiller(palette = "Spectral",
+                       limits = c(0, 1.5),
+                       labels = c("0", ".5", "1", "1.5"),
+                       breaks = c(0, .5, 1, 1.5)) +
+  scale_color_distiller(palette = "Spectral",
+                        limits = c(0, 1.5),
+                        labels = c("0", ".5", "1", "1.5"),
+                        breaks = c(0, .5, 1, 1.5))
 
-#
 
-library(raster)
-library(rgeos)
+#====================#
+# Grouping Models
+#====================#
+# This requires the fitting full model from predict.R
+time_fit <- data.frame(fit = m_full_list[[1]]$fitted.values,
+                       obs = urban_list[[1]][ , "Tu"])
 
-## get SpatialPolygnsDataFrame map of the states
-m <- getData("GADM", country="United States", level=1)
-m <- m[!m$NAME_1 %in% c("Alaska","Hawaii"),] # sorry Alaska and Hawaii
 
-## here I modified your code to make a raster object
-r <- raster(nrow=30, ncol=30,
-            xmn=bbox(m)["x","min"], xmx=bbox(m)["x","max"],
-            ymn=bbox(m)["y","min"], ymx=bbox(m)["y","max"],
-            crs=proj4string(m))
-xyz <- rasterToPoints(r)
-r[] <- sin(xyz[,"y"]*pi/180) + cos(xyz[,"x"]*pi/180)
 
-## Option A) mask raster using polygon
-newr <- mask(r, m)
-plot(newr, col=cm.colors(60), axes=FALSE)
-plot(m, add=TRUE)
-box(col="white")
 
 

@@ -104,28 +104,21 @@ m2_m <- map_dbl(urban_list, ~get_oos_rmse(as.data.frame(.x),
                                           K = 10, R = 1))
 
 
-# Plot global RMSE
-m2_m_rmse <- is_urban
-m2_m_rmse[is_urban] <- m2_m
-m2_m_rmse <- matrix(m2_m_rmse, nrow = 288)
-
-library(lattice)
-levelplot(m2_m_rmse)
-
 library(stringr)
-
 latlon <- dimnames(urban)[[1]] %>%
   str_split(", ") %>%
   unlist()
 lat <- as.integer(latlon[seq(1, length(latlon), 2)])
 lon <- as.integer(latlon[seq(2, length(latlon), 2)])
+lat <- lat[is_urban]
+lon <- lon[is_urban]
 lon[lon > 180] <- lon[lon > 180] - 360
-m1_m_rmse[m1_m_rmse == 0] <- NA
-m2_m_rmse[m2_m_rmse == 0] <- NA
-map_df <- data.frame(lat = lat,
+map_df_m1 <- data.frame(lat = lat,
                      lon = lon,
-                     m1 = c(m1_m_rmsee),
-                     m2 = c(m2_m_rmsee))
+                     RMSE = c(m1_m))
+map_df_m2 <- data.frame(lat = lat,
+                        lon = lon,
+                        RMSE = c(m2_m))
 
 
 #=================#
