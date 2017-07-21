@@ -2,6 +2,8 @@ library(GGally)
 library(tidyverse)
 library(purrr)
 library(broom)
+library(abind)
+library(plyr)
 
 # load data
 load(url("https://www.dropbox.com/s/v0cal2s54mizlfo/urban.rda?dl=1"))
@@ -37,6 +39,12 @@ m <- map(urban_subset, ~lm(Tu ~ ., data = as.data.frame(.x)))
 # Fit all models
 
 # Data processing
+
+# add season
+d <- t(array(rep(rep(c(1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 1), times = 96), times = dim(urban)[1]),
+           dim = c(1152, length(urban_list))))
+u2 <- abind(urban, d, along = 3)
+
 all_jans <- seq(1, dim(urban)[2], by = 12)
 urban_list <- urban[is_urban,
                     all_jans,
@@ -45,7 +53,7 @@ urban_list <- urban[is_urban,
   map(~apply(.x, MARGIN = 2, scale))
 
 # Fit Models
-model_list <- map(urban_list, ~lm(Tu ~ ., data = as.data.frame(.x)))
+model_list <- map(urban_list, ~lm(Tu ~ . + season:Ld + season:Q, data = as.data.frame(.x)))
 
 # Extract coefficients
 coef_list <- map(model_list, ~tidy(.x)$estimate)
@@ -63,7 +71,7 @@ ggplot(df, aes(x = k, y = withinss)) +
   geom_line()
 
 # hierarchical clustering
-subsamp <- sample_n(as.data.frame(scale(coef_df)), size = 200) %>%
+subsamp <- as.data.frame(scale(coef_df)) %>%
   dist()
 hc <- hclust(subsamp)
 plot(hc, xlab = "", ylab = "", sub = "", main = "Complete Linkage", cex = .6)
@@ -107,26 +115,50 @@ theme_map <- function(...) {
 }
 
 north_am <- c(left = -128, bottom = 12, right = -65, top = 55)
-map <- get_stamenmap(north_am, zoom = 5, maptype = "terrain-background")
+world <- c(left = -180, bottom = -90, right = 180, top = 90)
+map <- get_openstreetmap(world)
 p1 <- ggmap(map) +
-  theme_map()
+  theme_minimal()
+
+df <- data.frame(lat = c(35, 20), lon = c(-85, -100), val = c(5, 10))
+p1 + geom_tile(data = map_df, aes(x = lon, y = lat, fill = m1))
 
 is_urban <- (rowSums(!is.na(urban[, , "Tu"])) > 0)
 is_urban_mat <- matrix(is_urban, nrow = 288)
 
+map.world <- map_data(map = "world")
 
+map.world$long <- map.world$long - 180
+ggplot(map.world, aes(x = long + 180, y = lat)) +
+  geom_polygon(aes(group = group), fill = "lightgrey") +
+  theme_minimal() +
+  xlab("lon") #+
+  geom_tile(data = map_df, aes(x = lon, y = lat, fill = m1))
 
+ggplot(map_df, aes(x = lon, y = lat, fill = m1)) +
+  geom_tile() + theme_minimal()
 
 #
 
-df <- as.data.frame(urban_subset[[1]])
-ggplot(df, aes(x = TH, y = Tu)) +
-  geom_point() +
-  geom_smooth(method = "lm")
-df_res <- data.frame(res = m[[1]]$res, time_ind = 1:dim(urban_subset[[1]])[1])
-ggplot(df_res, aes(x = time_ind, y = res)) +
-  geom_point()
+library(raster)
+library(rgeos)
 
-models <- apply(urban_subset, MARGIN = 1, FUN = SLR, var = "TH")
+## get SpatialPolygnsDataFrame map of the states
+m <- getData("GADM", country="United States", level=1)
+m <- m[!m$NAME_1 %in% c("Alaska","Hawaii"),] # sorry Alaska and Hawaii
+
+## here I modified your code to make a raster object
+r <- raster(nrow=30, ncol=30,
+            xmn=bbox(m)["x","min"], xmx=bbox(m)["x","max"],
+            ymn=bbox(m)["y","min"], ymx=bbox(m)["y","max"],
+            crs=proj4string(m))
+xyz <- rasterToPoints(r)
+r[] <- sin(xyz[,"y"]*pi/180) + cos(xyz[,"x"]*pi/180)
+
+## Option A) mask raster using polygon
+newr <- mask(r, m)
+plot(newr, col=cm.colors(60), axes=FALSE)
+plot(m, add=TRUE)
+box(col="white")
 
 
