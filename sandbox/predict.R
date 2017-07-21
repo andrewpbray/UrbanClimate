@@ -62,9 +62,25 @@ pred_cube <- unlist(pred_list) %>%
 # devtools::use_data(pred_cube)
 
 
+#================#
+# Computed weighted average time series
+#load("data/area_u.Rdata")
+p <- pred_cube %>%
+  alply(3)
 
+pred_Tu <- purrr::map(p, ~.x * area_u) %>%
+  purrr::map(~mean(.x, na.rm = TRUE)) %>%
+  unlist()
 
+# output
+#devtools::use_data(pred_Tu)
 
+df <- data.frame(pred_Tu, year = as.factor(rep(1:95, each = 12) + 2005))
+df %>%
+  group_by(year) %>%
+  summarize(avg_T = mean(pred_Tu)) %>%
+  ggplot(aes(x = year, y = avg_T)) +
+  geom_point()
 
 
 
