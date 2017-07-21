@@ -4,7 +4,7 @@
 
 #=================#
 # Data Processing
-urban[ , , "P"] <- log(urban[ , , "P"] + 0.001)
+urban[ , , "LiqPrecip"] <- log(urban[ , , "LiqPrecip"] + 0.001)
 is_urban <- (rowSums(!is.na(urban[, , "Tu"])) > 0)
 urban_list <- urban[is_urban, , c("Ld", "LiqPrecip", "P", "PCO2", "Q", "Sd", "T", "Tu")] %>%
   alply(1) %>%
@@ -114,12 +114,18 @@ levelplot(m2_m_rmse)
 
 library(stringr)
 
-latlon <- dimnames(urban)[[1]]
-
-map_df <- data.frame(lat = ,
-                     lon = ,
-                     m1 = c(m1_m_rmse),
-                     m2 = c(m2_m_rmse))
+latlon <- dimnames(urban)[[1]] %>%
+  str_split(", ") %>%
+  unlist()
+lat <- as.integer(latlon[seq(1, length(latlon), 2)])
+lon <- as.integer(latlon[seq(2, length(latlon), 2)])
+lon[lon > 180] <- lon[lon > 180] - 360
+m1_m_rmse[m1_m_rmse == 0] <- NA
+m2_m_rmse[m2_m_rmse == 0] <- NA
+map_df <- data.frame(lat = lat,
+                     lon = lon,
+                     m1 = c(m1_m_rmsee),
+                     m2 = c(m2_m_rmsee))
 
 
 #=================#
