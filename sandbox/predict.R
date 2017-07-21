@@ -59,7 +59,7 @@ pred_cube <- unlist(pred_list) %>%
   array(dim = c(288, 192, 1140))
 
 # output
-#devtools::use_data(pred_cube)
+# devtools::use_data(pred_cube)
 
 
 
