@@ -53,27 +53,24 @@ newdata <- urban_cube %>%
   alply(1, as.data.frame)
 
 # predict
-p1 <- predict(m_full_list[[1]], newdata = newdata[[1]])
 pred_list <- purrr::map2(.x = m_full_list, .y = newdata, ~predict(.x, newdata = .y))
-pred_cube <- unlist(pred_list) %>%
-  array(dim = c(288, 192, 1140))
+pred_mat <- unlist(pred_list) %>%
+  matrix(ncol = 1140)
 
 # output
-# devtools::use_data(pred_cube)
+devtools::use_data(pred_mat)
 
 
 #================#
 # Computed weighted average time series
 #load("data/area_u.Rdata")
-p <- pred_cube %>%
-  alply(3)
+weights <- area_u[is_urban]
+weights <- weights/sum(weights)
 
-pred_Tu <- purrr::map(p, ~.x * area_u) %>%
-  purrr::map(~mean(.x, na.rm = TRUE)) %>%
-  unlist()
+pred_Tu <- colSums(weight_mat * pred_mat)
 
 # output
-#devtools::use_data(pred_Tu)
+devtools::use_data(pred_Tu, overwrite = TRUE)
 
 df <- data.frame(pred_Tu, year = as.factor(rep(1:95, each = 12) + 2005))
 df %>%
