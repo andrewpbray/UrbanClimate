@@ -34,9 +34,6 @@ urban_train <- urban # don't overwrite training data
 load("data/cesm_r1.RData")
 
 # Data Processing
-urban[ , , "LiqPrecip"] <- log(urban[ , , "LiqPrecip"] + 0.001)
-is_urban <- (rowSums(!is.na(urban[, , "Tu"])) > 0)
-
 # Add month variable
 d <- t(array(rep(rep(1:12, times = 95), times = dim(urban)[1]),
              dim = c(1140, sum(is_urban))))
@@ -49,6 +46,7 @@ dimnames(urban_cube)[[3]] <- c("PCO2", "month", "Tref", "Q", "P", "Ld" , "Sd" , 
 
 # prepare as newdata
 urban_cube <- urban_cube[ , , c("month", "Ld", "LiqPrecip", "P", "PCO2", "Q", "Sd")]
+urban_cube[ , , "LiqPrecip"] <- log(urban_cube[ , , "LiqPrecip"] + 0.001)
 newdata <- urban_cube %>%
   alply(1, as.data.frame)
 
@@ -66,6 +64,7 @@ devtools::use_data(pred_mat)
 #load("data/area_u.Rdata")
 weights <- area_u[is_urban]
 weights <- weights/sum(weights)
+weight_mat <- matrix(rep(weights, 1140), ncol = 1140)
 
 pred_Tu <- colSums(weight_mat * pred_mat)
 
