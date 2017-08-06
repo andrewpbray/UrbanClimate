@@ -3,6 +3,11 @@
 #=================#
 # Use data from runxx to get predictions of Tu using emulator
 
+library(abind)
+library(plyr)
+library(purrr)
+library(tidyverse)
+
 #=================#
 # Fit Model
 
@@ -53,7 +58,7 @@ newdata <- urban_cube %>%
 # predict
 pred_list <- purrr::map2(.x = m_full_list, .y = newdata, ~predict(.x, newdata = .y))
 pred_mat <- unlist(pred_list) %>%
-  matrix(ncol = 1140)
+  matrix(ncol = 1140, byrow = TRUE)
 
 # output
 devtools::use_data(pred_mat)
@@ -61,7 +66,7 @@ devtools::use_data(pred_mat)
 
 #================#
 # Computed weighted average time series
-#load("data/area_u.Rdata")
+load("data/area_u.Rdata")
 weights <- area_u[is_urban]
 weights <- weights/sum(weights)
 weight_mat <- matrix(rep(weights, 1140), ncol = 1140)
@@ -72,11 +77,13 @@ pred_Tu <- colSums(weight_mat * pred_mat)
 devtools::use_data(pred_Tu, overwrite = TRUE)
 
 df <- data.frame(pred_Tu, year = as.factor(rep(1:95, each = 12) + 2005))
-df %>%
+df2 <- df %>%
   group_by(year) %>%
-  summarize(avg_T = mean(pred_Tu)) %>%
-  ggplot(aes(x = year, y = avg_T)) +
-  geom_point()
+  summarize(avg_T = mean(pred_Tu))
+
+ggplot(df2, aes(x = year, y = avg_T)) +
+  geom_point() +
+  theme_minimal()
 
 
 
