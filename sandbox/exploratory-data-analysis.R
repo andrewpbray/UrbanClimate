@@ -140,6 +140,30 @@ time_fit <- data.frame(fit = m_full_list[[1]]$fitted.values,
                        obs = urban_list[[1]][ , "Tu"])
 
 
+# Extract coefficients
+library(broom)
+coef_list <- purrr::map(m_full_list, ~tidy(.x)$estimate)
+is_full <- unlist(lapply(coef_list, length)) == 84
+coef_list <- coef_list[is_full]
+coef_df <- matrix(unlist(coef_list), nrow = sum(is_full), byrow = TRUE) %>%
+  scale() %>%
+  as.data.frame()
+names(coef_df) <- c("intercept", names(coef(m1)[-1]))
+#ggpairs(coef_df)
 
+# k-means clustering
+df <- data.frame(k = 2:10, withinss = rep(NA, 9))
+for (i in 1:9) {
+  df[i, "withinss"] <- kmeans(coef_df, centers = i + 1, iter.max = 15)$tot.withinss
+}
+ggplot(df, aes(x = k, y = withinss)) +
+  geom_point() +
+  geom_line() +
+  theme_minimal()
+
+# hierarchical clustering
+subsamp <- dist(coef_df)
+hc <- hclust(subsamp)
+plot(hc, xlab = "", ylab = "", sub = "", main = "Complete Linkage", cex = .6)
 
 
