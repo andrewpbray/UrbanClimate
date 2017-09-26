@@ -7,7 +7,7 @@ library(tidyverse)
 
 #=================#
 # Load training data
-load("data/urban.rda")
+load("data/cesm_urban.rda")
 load("data/cesm_urban_UV.RData")
 # Data Processing
 urban[ , , "LiqPrecip"] <- log(urban[ , , "LiqPrecip"] + 0.001)
@@ -60,11 +60,13 @@ ggplot(map.world, aes(x = long + 180, y = lat)) +
   ylab("") +
   geom_tile(data = map_df_m2, aes(x = lon, y = lat, fill = RMSE, colour = RMSE), size = 1) +
   scale_fill_distiller(palette = "Spectral",
-                       limits = c(0, 1.5),
-                       labels = c("0", ".5", "1", "1.5"),
-                       breaks = c(0, .5, 1, 1.5)) +
+                       limits = c(0, 0.5),
+                       labels = c("0", ".25", "0.5"),
+                       breaks = c(0, .25, 0.5)) +
   scale_color_distiller(palette = "Spectral",
-                        limits = c(0, 1.5),
-                        labels = c("0", ".5", "1", "1.5"),
-                        breaks = c(0, .5, 1, 1.5))
-ggsave("Map_cvRMSE.pdf")
+                        limits = c(0, 0.5),
+                        labels = c("0", ".25", "0.5"),
+                        breaks = c(0, .25, 0.5)) #+ coord_fixed()
+ggsave("Map_cvRMSE.pdf",dpi=600)
+
+
